@@ -10,10 +10,22 @@ import WebKit
 
 struct DetailView: View {
     
+    @State private var isLoading: Bool = false
+    
     let url: String?
     
     var body: some View {
-        WebView(urlString: url)
+        
+        ZStack{
+            
+            WebView(urlString: url, isLoading: $isLoading)
+            
+            if isLoading == true {
+                ProgressView("Loading...")
+            } else {
+                EmptyView()
+            }
+        }
     }
 }
 
@@ -22,4 +34,3 @@ struct DetailView_Previews: PreviewProvider {
         DetailView(url: "https://www.google.com")
     }
 }
-

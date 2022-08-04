@@ -11,20 +11,64 @@ import SwiftUI
 
 struct WebView: UIViewRepresentable {
     
-    typealias UIViewType = WKWebView
+//    typealias UIViewType = WKWebView
     
     let urlString: String?
     
-    func makeUIView(context: Context) -> WKWebView {
-        return WKWebView()
-    }
+    @Binding var isLoading: Bool
     
-    func updateUIView(_ uiView: UIViewType, context: Context) {
+    func makeUIView(context: Context) -> some UIView {
+        let webView = WKWebView()
+        webView.navigationDelegate = context.coordinator
+        
         if let safeString = urlString {
             if let url = URL(string: safeString) {
                 let request = URLRequest(url: url)
-                uiView.load(request)
+                webView.navigationDelegate = context.coordinator
+                webView.load(request)
             }
         }
+        return webView
     }
+    
+    func updateUIView(_ uiView: UIViewType, context: Context) {
+
+    }
+    
+    func makeCoordinator() -> WebViewCoordinator {
+        return WebViewCoordinator {
+            isLoading = true
+        } didFinish: {
+            isLoading = false
+        }
+
+    }
+}
+
+class WebViewCoordinator: NSObject, WKNavigationDelegate {
+    
+    var didStartLoading: (() -> ())
+    var didFinishLoading: (() -> ())
+    
+    
+    init(didStart: @escaping () -> () = {}, didFinish: @escaping () -> () = {}) {
+        didStartLoading = didStart
+        didFinishLoading = didFinish
+    }
+    
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        didStartLoading()
+    }
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        didFinishLoading()
+    }
+    
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        print(error.localizedDescription)
+    }
+    
+  
+    
+    
 }
